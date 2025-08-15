@@ -1,4 +1,6 @@
 package dev.dekxi;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 /*
@@ -13,8 +15,6 @@ import java.util.Scanner;
 	 * simply utilize the addActionData method by putting the action name and its
 	 * appropriate runnable function
 	 * 
-	 * Also, map it on the actionMap method by adding an incremented index for the action
-	 * you wish to add
  */
 
 public class Main {
@@ -32,11 +32,12 @@ public class Main {
 	}
 	private static void app(String[] args) {
 		registerActions();
+		Map<Integer, Runnable> actionMap = createActionMap();
 		while(continueProgram) {
 			Console.printBanner();
 			int choice = Console.printMenu();
 			if (!(choice==0)) {
-				actionMap(choice);
+				runActionBasedOnChoice(actionMap, choice);
 			}else {
 				continueProgram = false;
 				System.out.println("Thank you for using my program! - dekxi");
@@ -47,6 +48,12 @@ public class Main {
 	 * INITIALIZER
 	 * =============*/
 	private static void registerActions() {
+		DataStore.addActionData("PRINT SETS", () -> {
+			String[] a = Console.getStringArray("SET A");
+			String[] b = Console.getStringArray("SET B");
+			Console.printStringArray("SET A PRINTOUT", a);
+			Console.printStringArray("SET B PRINTOUT", b);
+		});
 		DataStore.addActionData("UNION OF SETS", () -> {
 			String[] a = Console.getStringArray("SET A");
 			String[] b = Console.getStringArray("SET B");
@@ -70,24 +77,19 @@ public class Main {
 		});
 	}
 	/*
-	 * Instead of a hash map, given that a fixed decision structure like switch-case is faster.
-	 * This one is utilized. For addActionData to actually mirror changes in the console output,
-	 * simply copy-paste the getActionFromIndex.run method and add an incremented index
+	 * I used a hash map for a more dynamic approach in registering action data to indices
 	 */
-	private static void actionMap(int choice) {
-		switch(choice) {
-		case 1:
-			DataStore.getActionFromIndex(0).run();
-			break;
-		case 2:
-			DataStore.getActionFromIndex(1).run();
-			break;
-		case 3:
-			DataStore.getActionFromIndex(2).run();
-			break;
-		case 4:
-			DataStore.getActionFromIndex(3).run();
-		}
+	private static Map<Integer, Runnable> createActionMap() {
+		Map<Integer, Runnable> actionMap = new HashMap<>();
+		for (int i = 0; i < DataStore.getActionCount(); i++) {
+			int index = i;
+			actionMap.put(i + 1, () -> DataStore.getActionFromIndex(index).run());
+	    }
+		return actionMap;
+	}
+	
+	private static void runActionBasedOnChoice(Map<Integer, Runnable> actionMap, int choice) {
+	    actionMap.get(choice).run();
 	}
 	/*=================
 	 * DEFAULT SET OPERATIONS
@@ -205,6 +207,9 @@ class DataStore{
 	}
 	public static Action[] getActions() {
 		return actionData;
+	}
+	public static int getActionCount() {
+		return actionData.length;
 	}
 	public static Action getActionFromIndex(int num) {
 		return actionData[num];
@@ -408,4 +413,3 @@ class Console{
 		return a;
 	}
 }
-
